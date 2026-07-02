@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Recursion Raster | v02</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.min.js"></script>
+</head>
+<body>
+
+  <div id="root">
+    <div class="canvas-section">
+      <div class="canvas-label"><span>Recursion Raster | v02</span></div>
+      <div id="canvas-container"></div>
+    </div>
+  </div>
+
+  <div class="bottom-sheet" id="bottom-sheet">
+    <div class="options-toggle">
+      <button class="options-btn" id="optionsBtn">↑ options</button>
+    </div>
+    <div class="panel" id="panel">
+      <div id="controls">
+
+        <!-- Upload / Camera -->
+        <div class="upload-row">
+          <button class="btn btn-upload" id="uploadBtn">↑ upload photo</button>
+          <button class="btn-flip" id="flipCamBtn">front</button>
+        </div>
+        <input type="file" id="photoUpload" accept="image/*" style="display:none">
+
+        <!-- Resolution | Threshold -->
+        <div class="twin-sliders">
+          <div class="twin-col">
+            <div class="mini-label">resolution</div>
+            <div class="slider-row">
+              <input type="range" id="resSlider" min="4" max="64" value="24" step="1">
+            </div>
+            <span id="resValue" class="val">24</span>
+          </div>
+          <div class="twin-col">
+            <div class="mini-label">threshold</div>
+            <div class="slider-row">
+              <input type="range" id="threshSlider" min="0" max="100" value="50">
+            </div>
+            <span id="threshValue" class="val">0.50</span>
+          </div>
+        </div>
+
+        <!-- Mirror -->
+        <select id="mirrorSelect">
+          <option value="none">No mirror</option>
+          <option value="mirrorX">Mirror X</option>
+          <option value="mirrorY">Mirror Y</option>
+          <option value="mirrorXY">Mirror X+Y</option>
+          <option value="tileFlipX">Tile Flip X</option>
+          <option value="tileFlipY">Tile Flip Y</option>
+          <option value="checkerMirror">Checker Mirror</option>
+          <option value="pinwheel">Pinwheel (4×)</option>
+        </select>
+
+        <!-- Render Mode -->
+        <select id="modeSelect">
+          <option value="realcolor">Real Color</option>
+          <option value="duotone">Duotone</option>
+          <option value="stroke">Stroke</option>
+        </select>
+
+        <!-- Color A / B -->
+        <div class="color-row">
+          <button class="color-btn" id="colorABtn">Color A</button>
+          <input type="color" id="colorA" value="#ffffff" class="color-input">
+          <button class="color-btn" id="colorBBtn">Color B</button>
+          <input type="color" id="colorB" value="#000000" class="color-input">
+        </div>
+
+        <!-- Export -->
+        <div class="btn-row">
+          <button class="btn-export" id="exportPNG">↓ PNG</button>
+          <button class="btn-export" id="exportSVG">↓ SVG</button>
+        </div>
+
+      </div>
+
+      <footer class="footer">
+        <p>
+          Generative tool made by <a href="https://www.kostrzeva.com">Tomáš Kostrzeva</a>
+          <br><br>
+          Outputs licensed with <a href="https://creativecommons.org/cc-licenses/" target="_blank">CC BY</a>
+          &nbsp;| &nbsp;
+          Support me with <a href="https://buymeacoffee.com/tomaskostrzeva" target="_blank">Buy me a coffee</a>
+        </p>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    const panel       = document.getElementById('panel');
+    const optionsBtn  = document.getElementById('optionsBtn');
+    const bottomSheet = document.getElementById('bottom-sheet');
+    let panelOpen = true;
+
+    function updateSheetH() {
+      document.documentElement.style.setProperty('--sheet-h', bottomSheet.offsetHeight + 'px');
+      if (typeof windowResized === 'function') windowResized();
+    }
+
+    optionsBtn.textContent = '↓ options';
+    setTimeout(() => {
+      panel.style.height = panel.scrollHeight + 'px';
+      updateSheetH();
+    }, 0);
+
+    optionsBtn.addEventListener('click', () => {
+      panelOpen = !panelOpen;
+      panel.style.height = panelOpen ? panel.scrollHeight + 'px' : '0';
+      optionsBtn.textContent = panelOpen ? '↓ options' : '↑ options';
+      setTimeout(updateSheetH, 360);
+    });
+
+    document.getElementById('uploadBtn').addEventListener('click', () => {
+      document.getElementById('photoUpload').click();
+    });
+
+    function bindColor(inputId, btnId) {
+      const input = document.getElementById(inputId);
+      const btn   = document.getElementById(btnId);
+      const sync  = () => btn.style.backgroundColor = input.value;
+      sync();
+      input.addEventListener('input', sync);
+      btn.addEventListener('click', () => input.click());
+    }
+    bindColor('colorA', 'colorABtn');
+    bindColor('colorB', 'colorBBtn');
+  </script>
+
+  <script src="sketch.js"></script>
+</body>
+</html>
