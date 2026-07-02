@@ -72,10 +72,14 @@
 
         <!-- Color A / B -->
         <div class="color-row">
-          <button class="color-btn" id="colorABtn">Color A</button>
-          <input type="color" id="colorA" value="#ffffff" class="color-input">
-          <button class="color-btn" id="colorBBtn">Color B</button>
-          <input type="color" id="colorB" value="#000000" class="color-input">
+          <div class="color-wrap">
+            <button class="color-btn" id="colorABtn">Color A</button>
+            <input type="color" id="colorA" value="#ffffff" class="color-input-overlay">
+          </div>
+          <div class="color-wrap">
+            <button class="color-btn" id="colorBBtn">Color B</button>
+            <input type="color" id="colorB" value="#000000" class="color-input-overlay">
+          </div>
         </div>
 
         <!-- Export -->
@@ -132,7 +136,7 @@
       const sync  = () => btn.style.backgroundColor = input.value;
       sync();
       input.addEventListener('input', sync);
-      btn.addEventListener('click', () => input.click());
+      // input overlays the button natively — no .click() relay needed
     }
     bindColor('colorA', 'colorABtn');
     bindColor('colorB', 'colorBBtn');

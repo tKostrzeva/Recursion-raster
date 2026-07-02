@@ -108,7 +108,12 @@ function bindUI() {
     colorB = hexToColor(this.value);
   });
   select('#exportPNG').elt.addEventListener('click', function () {
+    const { ew, eh } = exportDims();
+    resizeCanvas(ew, eh);
+    draw();
     saveCanvas('recursive_rasterizer', 'png');
+    const { w, h } = getCanvasDimensions();
+    resizeCanvas(w, h);
   });
   select('#exportSVG').elt.addEventListener('click', exportSVG);
 
@@ -281,7 +286,18 @@ function subdivide(x, y, w, h, nx0, ny0, nw, nh, N, depth, recording) {
   }
 }
 
+function exportDims() {
+  const ratio = RATIOS[currentRatioIdx];
+  let ew, eh;
+  if (ratio.w >= ratio.h) { ew = 1920; eh = Math.round(1920 * ratio.h / ratio.w); }
+  else                     { eh = 1920; ew = Math.round(1920 * ratio.w / ratio.h); }
+  return { ew, eh };
+}
+
 function exportSVG() {
+  const { ew, eh } = exportDims();
+  resizeCanvas(ew, eh);
+
   svgRects = [];
 
   let tileSize = (width >= height) ? width / res : height / res;
@@ -317,6 +333,9 @@ function exportSVG() {
   a.href = URL.createObjectURL(blob);
   a.download = 'recursive_rasterizer_cam.svg';
   a.click();
+
+  const { w, h } = getCanvasDimensions();
+  resizeCanvas(w, h);
 }
 
 function windowResized() {
