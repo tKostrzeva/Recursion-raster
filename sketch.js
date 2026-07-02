@@ -1,3 +1,16 @@
+const RATIOS = [
+  { label: '1:1',  w: 1,  h: 1  },
+  { label: '4:3',  w: 4,  h: 3  },
+  { label: '3:4',  w: 3,  h: 4  },
+  { label: '4:5',  w: 4,  h: 5  },
+  { label: '5:4',  w: 5,  h: 4  },
+  { label: '16:9', w: 16, h: 9  },
+  { label: '9:16', w: 9,  h: 16 },
+  { label: '3:2',  w: 3,  h: 2  },
+  { label: '2:3',  w: 2,  h: 3  },
+];
+let currentRatioIdx = 6; // 9:16 default
+
 let res = 24;
 let threshBase = 0.5;
 let mirrorMode = 'none';
@@ -15,9 +28,31 @@ let svgRects = [];
 const MAX_DEPTH = 2;
 const MAX_N = 4;
 
-function setup() {
+function getCanvasDimensions() {
+  const ratio     = RATIOS[currentRatioIdx];
   const container = document.getElementById('canvas-container');
-  createCanvas(container.clientWidth, container.clientHeight).parent('canvas-container');
+  const availW    = container.clientWidth;
+  const availH    = container.clientHeight - 8;
+
+  let w, h;
+  if (ratio.h > ratio.w) {
+    h = availH;
+    w = Math.round(h * ratio.w / ratio.h);
+    if (w > availW) { w = availW; h = Math.round(w * ratio.h / ratio.w); }
+  } else if (ratio.w > ratio.h) {
+    w = availW;
+    h = Math.round(w * ratio.h / ratio.w);
+    if (h > availH) { h = availH; w = Math.round(h * ratio.w / ratio.h); }
+  } else {
+    const side = Math.min(availW, availH);
+    w = side; h = side;
+  }
+  return { w: Math.max(w, 10), h: Math.max(h, 10) };
+}
+
+function setup() {
+  const { w, h } = getCanvasDimensions();
+  createCanvas(w, h).parent('canvas-container');
   colorMode(RGB);
   colorA = color(255, 255, 255);
   colorB = color(0, 0, 0);
@@ -32,6 +67,21 @@ function setup() {
 }
 
 function bindUI() {
+  // Ratio buttons
+  const ratioRow = document.getElementById('ratio-buttons');
+  RATIOS.forEach((r, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'ratio-btn' + (i === currentRatioIdx ? ' active' : '');
+    btn.textContent = r.label;
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.ratio-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentRatioIdx = i;
+      windowResized();
+    });
+    ratioRow.appendChild(btn);
+  });
+
   select('#resSlider').elt.addEventListener('input', function () {
     res = int(this.value);
     select('#resValue').html(res);
@@ -92,31 +142,31 @@ function brightnessToN(br) {
   return max(1, round(map(br, 0, 1, MAX_N, 1)));
 }
 
-function applyMirror(gx, gy) {
+function applyMirror(gx, gy, resX, resY) {
   let sx = gx, sy = gy;
   if (mirrorMode === 'mirrorX') {
-    sx = gx < res / 2 ? gx : res - 1 - gx;
+    sx = gx < resX / 2 ? gx : resX - 1 - gx;
   } else if (mirrorMode === 'mirrorY') {
-    sy = gy < res / 2 ? gy : res - 1 - gy;
+    sy = gy < resY / 2 ? gy : resY - 1 - gy;
   } else if (mirrorMode === 'mirrorXY') {
-    sx = gx < res / 2 ? gx : res - 1 - gx;
-    sy = gy < res / 2 ? gy : res - 1 - gy;
+    sx = gx < resX / 2 ? gx : resX - 1 - gx;
+    sy = gy < resY / 2 ? gy : resY - 1 - gy;
   } else if (mirrorMode === 'tileFlipX') {
-    if (gx % 2 === 1) sx = res - 1 - gx;
+    if (gx % 2 === 1) sx = resX - 1 - gx;
   } else if (mirrorMode === 'tileFlipY') {
-    if (gy % 2 === 1) sy = res - 1 - gy;
+    if (gy % 2 === 1) sy = resY - 1 - gy;
   } else if (mirrorMode === 'checkerMirror') {
-    if (gx % 2 === 1) sx = res - 1 - gx;
-    if (gy % 2 === 1) sy = res - 1 - gy;
+    if (gx % 2 === 1) sx = resX - 1 - gx;
+    if (gy % 2 === 1) sy = resY - 1 - gy;
   } else if (mirrorMode === 'pinwheel') {
-    let qx = gx < res / 2 ? gx : res - 1 - gx;
-    let qy = gy < res / 2 ? gy : res - 1 - gy;
-    if (gx >= res / 2 && gy < res / 2) {
-      sx = constrain(int(qy), 0, res - 1);
-      sy = constrain(int(qx), 0, res - 1);
-    } else if (gx < res / 2 && gy >= res / 2) {
-      sx = constrain(int(res / 2 - 1 - qy), 0, res - 1);
-      sy = constrain(int(res / 2 - 1 - qx), 0, res - 1);
+    let qx = gx < resX / 2 ? gx : resX - 1 - gx;
+    let qy = gy < resY / 2 ? gy : resY - 1 - gy;
+    if (gx >= resX / 2 && gy < resY / 2) {
+      sx = constrain(int(qy), 0, resX - 1);
+      sy = constrain(int(qx), 0, resY - 1);
+    } else if (gx < resX / 2 && gy >= resY / 2) {
+      sx = constrain(int(resX / 2 - 1 - qy), 0, resX - 1);
+      sy = constrain(int(resY / 2 - 1 - qx), 0, resY - 1);
     } else {
       sx = qx; sy = qy;
     }
@@ -164,17 +214,17 @@ function draw() {
   if (renderMode === 'stroke') background(colorB);
   else background(0);
 
-  let tileW = width / res;
-  let tileH = height / res;
+  let tileSize = (width >= height) ? width / res : height / res;
+  let resX = Math.ceil(width  / tileSize);
+  let resY = Math.ceil(height / tileSize);
 
-  for (let gx = 0; gx < res; gx++) {
-    for (let gy = 0; gy < res; gy++) {
-      let { sx, sy } = applyMirror(gx, gy);
-      // Normalized camera coords for this base tile
-      let nx0 = sx / res,  ny0 = sy / res;
-      let nw  = 1 / res,   nh  = 1 / res;
+  for (let gx = 0; gx < resX; gx++) {
+    for (let gy = 0; gy < resY; gy++) {
+      let { sx, sy } = applyMirror(gx, gy, resX, resY);
+      let nx0 = sx / resX,  ny0 = sy / resY;
+      let nw  = 1 / resX,   nh  = 1 / resY;
 
-      drawTile(gx * tileW, gy * tileH, tileW, tileH,
+      drawTile(gx * tileSize, gy * tileSize, tileSize, tileSize,
                nx0, ny0, nw, nh, 0, false);
     }
   }
@@ -234,13 +284,14 @@ function subdivide(x, y, w, h, nx0, ny0, nw, nh, N, depth, recording) {
 function exportSVG() {
   svgRects = [];
 
-  let tileW = width / res;
-  let tileH = height / res;
-  for (let gx = 0; gx < res; gx++) {
-    for (let gy = 0; gy < res; gy++) {
-      let { sx, sy } = applyMirror(gx, gy);
-      drawTile(gx * tileW, gy * tileH, tileW, tileH,
-               sx / res, sy / res, 1 / res, 1 / res, 0, true);
+  let tileSize = (width >= height) ? width / res : height / res;
+  let resX = Math.ceil(width  / tileSize);
+  let resY = Math.ceil(height / tileSize);
+  for (let gx = 0; gx < resX; gx++) {
+    for (let gy = 0; gy < resY; gy++) {
+      let { sx, sy } = applyMirror(gx, gy, resX, resY);
+      drawTile(gx * tileSize, gy * tileSize, tileSize, tileSize,
+               sx / resX, sy / resY, 1 / resX, 1 / resY, 0, true);
     }
   }
 
@@ -269,6 +320,6 @@ function exportSVG() {
 }
 
 function windowResized() {
-  const container = document.getElementById('canvas-container');
-  resizeCanvas(container.clientWidth, container.clientHeight);
+  const { w, h } = getCanvasDimensions();
+  resizeCanvas(w, h);
 }

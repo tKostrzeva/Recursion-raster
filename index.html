@@ -30,6 +30,9 @@
         </div>
         <input type="file" id="photoUpload" accept="image/*" style="display:none">
 
+        <!-- Aspect ratio -->
+        <div class="ratio-row" id="ratio-buttons"></div>
+
         <!-- Resolution | Threshold -->
         <div class="twin-sliders">
           <div class="twin-col">
@@ -60,7 +63,7 @@
           <option value="pinwheel">Pinwheel (4×)</option>
         </select>
 
-        <!-- Render Mode -->
+        <!-- Render Mode + Stroke toggle -->
         <select id="modeSelect">
           <option value="realcolor">Real Color</option>
           <option value="duotone">Duotone</option>
